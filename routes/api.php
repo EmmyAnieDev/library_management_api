@@ -5,6 +5,7 @@ use App\Http\Controllers\v1\BookController;
 use App\Http\Controllers\v1\CategoryController;
 use App\Http\Controllers\v1\UserController;
 use App\Http\Controllers\v1\AuthController;
+use App\Http\Controllers\v2\BookV2Controller;
 use Illuminate\Support\Facades\Route;
 
 
@@ -35,7 +36,25 @@ Route::group(['prefix' => 'v1'], function () {
             Route::apiResource('/categories', CategoryController::class);
         });
     });
+});
 
 
-    Route::apiResource('/books', BookController::class);
+
+Route::group(['prefix' => 'v2'], function () {
+
+    Route::middleware('auth:sanctum')->group(function () {
+
+        // Read routes - only require authentication
+        Route::get('books/search', [BookV2Controller::class, 'search']);
+
+        Route::get('books', [BookV2Controller::class, 'index']);
+        Route::get('books/{id}', [BookV2Controller::class, 'show']);
+
+        // Write routes - require authentication and admin role
+        Route::middleware('role:admin')->group(function () {
+            Route::post('books', [BookController::class, 'store']);
+            Route::put('books/{id}', [BookController::class, 'update']);
+            Route::delete('books/{id}', [BookController::class, 'destroy']);
+        });
+    });
 });
